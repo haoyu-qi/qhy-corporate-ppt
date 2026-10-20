@@ -6,9 +6,9 @@
 企业模板驱动的 PPT Skill 框架，面向公司汇报、项目方案和周期性改稿。  
 A framework for a corporate-template-driven PPT skill, designed for business reporting, project proposals, and recurring revisions.
 
-> **当前状态：框架设计阶段。** 本仓库提供设计文档与实施路线，尚未包含可安装的 Skill、生成引擎或经过验证的发布版本。维护者已有跑通的内部方案，后续将逐步整理并接入；下文描述的是目标能力。
+> **当前状态：框架设计与本地模板登记。** 本仓库提供设计文档、实施路线，以及可运行的本地默认模板登记工具，尚未包含可安装的 Skill、生成引擎或经过验证的发布版本。维护者已有跑通的内部方案，后续将逐步整理并接入；演示文稿生产能力仍为设计目标。
 >
-> **Status: framework design.** This repository contains the design and implementation roadmap. It does not yet include an installable skill, a generation engine, or a validated release. The maintainer has reported a working internal workflow, which is planned for integration. The capabilities below describe the intended system.
+> **Status: framework design and local template registration.** This repository contains the design, implementation roadmap, and a runnable utility for registering a local default template. It does not yet include an installable skill, a generation engine, or a validated release. The maintainer has reported a working internal workflow, which is planned for integration. Presentation production capabilities remain design targets.
 
 ## 为什么做这个项目 / Why this project
 
@@ -116,19 +116,45 @@ Planned deliverables: the final PPTX, previews rendered from that file, a valida
 以上是设计目标，尚不是本仓库发布版本的实测成绩。  
 These are design targets, not measured results from a released version of this repository.
 
+## 默认模板 / Default template
+
+使用 Python 3 将原始企业 PPTX 登记为本机的项目默认模板：
+
+Use Python 3 to register an original corporate PPTX as this project's local default:
+
+```bash
+python3 scripts/template_registry.py set-default /path/to/company-template.pptx --id company-2027 --name "Company 2027"
+python3 scripts/template_registry.py resolve
+```
+
+工具在 `local-templates/<id>/` 保存原始文件的完整副本、SHA-256 指纹和结构清单，并将 `local-templates/default.json` 指向该模板。解析默认模板时验证指纹；同一 ID 的不同文件需用新版本 ID 登记。可用 `--store <directory>` 指定独立模板库。
+
+The utility keeps an intact source copy, a SHA-256 fingerprint, and a structural inventory under `local-templates/<id>/`. The local `local-templates/default.json` selects that template. Resolution verifies the fingerprint. Different files must use different version IDs. Use `--store <directory>` to select a separate template store.
+
+项目中的 Agent 在未收到当次明确模板时读取此默认配置；局部改稿仍以用户最新 PPTX 为基线。工具仅完成登记、结构盘点和版本校验，尚不执行内容生成、Logo 识别、有效样式解析或视觉验收。
+
+Agents working in this project read the default when the current task does not specify a template. Revisions still use the user's latest deck as their baseline. The utility handles registration, structural inventory, and version checks. It does not yet generate slides, identify logos, resolve effective styles, or validate rendered output.
+
+模板库属于本地配置，已由 Git 忽略。克隆仓库后需自行登记模板；公开仓库不附带企业原始模板。
+
+The template store is local configuration and is ignored by Git. Register a template after cloning the repository. Corporate source templates are not bundled in the public repository.
+
 ## 当前内容 / Repository contents
 
 ```text
 qhy-corporate-ppt/
 ├── README.md                    中英文项目介绍 / Bilingual project introduction
+├── AGENTS.md                    项目默认模板使用规则 / Agent template selection rules
 ├── docs/
 │   └── framework.zh-CN.md       详细框架设计（中文）/ Detailed framework design (Chinese)
+├── scripts/
+│   └── template_registry.py     本地模板登记与解析 / Local template registration and resolution
 └── .gitignore
 ```
 
-阅读 [详细框架设计](docs/framework.zh-CN.md)，了解模块边界、对象修改契约、接口草案和验证场景。目前没有安装步骤或可运行命令。
+阅读 [详细框架设计](docs/framework.zh-CN.md)，了解模块边界、对象修改契约、接口草案和验证场景。默认模板登记可按上文运行；生成引擎与 Skill 的安装步骤尚未提供。
 
-Read the [detailed framework design](docs/framework.zh-CN.md) for module boundaries, object mutation contracts, draft interfaces, and validation scenarios. There are no installation steps or runnable commands yet.
+Read the [detailed framework design](docs/framework.zh-CN.md) for module boundaries, object mutation contracts, draft interfaces, and validation scenarios. The template registry can be run as described above. Installation instructions for a generation engine or skill are not yet available.
 
 ## 实施路线 / Roadmap
 
@@ -136,6 +162,8 @@ Read the [detailed framework design](docs/framework.zh-CN.md) for module boundar
   Define the project scope, four workflows, and architecture.
 - [x] 建立独立仓库与中英文 README。  
   Establish a standalone repository and bilingual README.
+- [x] 提供本地默认模板登记、结构清单与文件版本校验。<br>
+  Provide local default template registration, structural inventory, and source fingerprint checks.
 - [ ] 整理内部跑通方案，用一套真实模板建立可复现基线。  
   Integrate the internal workflow and establish a reproducible baseline with one real template.
 - [ ] 实现模板建档、受约束修改及检查报告。  
